@@ -15,3 +15,12 @@ and navigation should be done with an elegant cover flow style display.
 * This would still use jinja and templating to create
 * Look good on tv
 * Work on ps3 (will probably need flash?)
+
+# Progress
+* Change MusicFolder into AlbumStructure
+  - Needs to replace BASE PATH with BASE_WEB_PATH
+  - Keep a list of directories to create, and then files to copy/sym link
+* Change parse into build
+  - it will first create the directories and sym link files
+  - generate html files and save them to the correct location
+
