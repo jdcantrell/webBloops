@@ -1,0 +1,12 @@
+<ul>
+  {% for folder in files -%}
+  <li class="album">
+    <ul class="cover">
+      {% for image in folder.files.images %}
+      <li style="background-image:url({{ image }})">&nbps;
+      {% endfor %}
+    <ul>
+    <span class="album-title">{{ folder.path }}</span>
+  {% endfor %}
+</ul>
+    
