@@ -1,11 +1,11 @@
-'''This class is a simple representation of a folder in webBloops, it contains
-all the required information for displaying the folder'''
+'''MusicFolder will recurse through the given directory and collect information
+about each level. It collects the images and available music files in a simple
+object for parsing'''
 import os
 
 class MusicFolder:
   def __init__(self, path):
     self.path = path
-    self.images = []
     self.children = []
     self.files = {'music': [], 'images': []}
     self._get_files()
@@ -17,31 +17,25 @@ class MusicFolder:
       if os.path.isdir(self.path + '/' + x):
         children.append(x)
       else:
-        if not self._add_file(x, ['.mp3'], self.files['music']):
-          self._add_file(x, ['.png', '.jpg'], self.files['images'])
+        if not self._add_file(x, ['.mp3'], 'music'):
+          self._add_file(x, ['.png', '.jpg', '.gif'], 'images')
     #add children to our list
     for c in children:
-      print "Checking child %s" % self.path + '/' + c
-      self.addChild(MusicFolder(self.path + '/' + c))
+      self._add_child(MusicFolder(self.path + '/' + c))
 
   def _add_file(self, file_name, types, file_type):
     ret = False;
     for t in types:
       try:
         file_name.index(t)
-        file_type.append(file_name)
+        self.files[file_type].append(self.path + '/' + file_name)
         ret = True
       except ValueError:
         pass
     return ret
 
-  def addChild(self, child):
+  def _add_child(self, child):
     self.children.append(child)
 
-    if (child.images):
-      self.images.append(child.images[0])
-
-if __name__ == "__main__":
-  a = MusicFolder('/Users/jcantrell/Downloads/webBloops')
-  dir(a)
-  print '%s' % a.files
+    if len(child.files['images']):
+      self.files['images'].append(child.files['images'][0])
