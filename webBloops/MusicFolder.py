@@ -4,7 +4,8 @@ object for parsing'''
 import os
 
 class MusicFolder:
-  def __init__(self, path):
+  def __init__(self, path, web_path):
+    self.web_path = web_path
     self.path = path
     self.children = []
     self.files = {'music': [], 'images': []}
@@ -21,7 +22,8 @@ class MusicFolder:
           self._add_file(x, ['.png', '.jpg', '.gif'], 'images')
     #add children to our list
     for c in children:
-      self._add_child(MusicFolder(self.path + '/' + c))
+      print 'Children %s' % self.path + '/' + c
+      self._add_child(MusicFolder(self.path + '/' + c, self.web_path + '/' + c))
 
   def _add_file(self, file_name, types, file_type):
     ret = False;
