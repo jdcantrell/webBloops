@@ -20,7 +20,7 @@ def create_file_pages(path, musicFolder):
 
   #create navigation html
   template = env.get_template('album_view.html')
-  file_name = web_folder + '/nav.html'
+  file_name = web_folder + 'nav.html'
   f = open(file_name, 'w')
   print "Creating %s" % file_name
   html = template.render(files=musicFolder.children)
@@ -32,7 +32,7 @@ def create_file_pages(path, musicFolder):
   
   #create children folders
   for i in musicFolder.children:
-    create_file_pages(i.path + '/', i)
+    create_file_pages(i.path, i)
       
 if __name__ == "__main__":
   musicFolder = MusicFolder.MusicFolder(BASE_FOLDER, WEB_PATH)
