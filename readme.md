@@ -24,3 +24,12 @@ and navigation should be done with an elegant cover flow style display.
   - it will first create the directories and sym link files
   - generate html files and save them to the correct location
 
+# Let's make a todo list to tackle this:
+1. Recreate folder structure in web base, generate html files based on found
+   files
+2. See if we can symlink, otherwise copy files and images as well
+3. Now create page to view the folder.html files
+4. regenerate to correct link and navigation folders
+5. create file view
+6. add in player code
+7. you're done for now!
