@@ -3,7 +3,7 @@ import os
 
 class MusicFolder(DirectoryList):
   def __init__(self, path, out_path):
-    self.count = 0
+    self.audioCount = 0
     super(MusicFolder, self).__init__(path)
     if out_path.endswith('/'):
       self.out_path = out_path
@@ -25,6 +25,7 @@ class MusicFolder(DirectoryList):
 
   def addFile(self, folder, filename, file_path):
     if filename.endswith(('.mp3', '.ogg', '.flac')):
+      self.audioCount += 1
       if folder.has_key('audio'):
         folder["audio"].append(filename)
       else:

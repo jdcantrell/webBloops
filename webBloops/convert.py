@@ -4,7 +4,8 @@ the destination directory'''
 from MusicFolder import *
 from clint import  args
 from clint.textui import colored, puts
-from pbs import lame, ogg123, flac, mp3info, cp
+from pbs import oggdec, flac, lame, mp3info, cp
+import mutagen
 
 import os, sys
 
@@ -14,34 +15,68 @@ console_width = int(columns)
 def clean_path(path):
   return '"%s"' % path.replace('"','\\"')
 
+def set_info(original, new):
+  if original.has_key('album'):
+    new['album'] = original['album']
+  if original.has_key('artist'):
+    new['artist'] = original['artist']
+  if original.has_key('title'):
+    new['title'] = original['title']
+  if original.has_key('tracknumber'):
+    new['tracknumber'] = original['tracknumber']
+  new.save()
+
 def convert(filename, path, output_path):
   base, extension = os.path.splitext(filename)
   extension = extension.lower()
   
-  infile = clean_path("%s%s" % (path, filename))
-  outfile = clean_path("%s%s.mp3" % (output_path, base))
+  original_full_path = "%s%s" % (path, filename)
+  new_full_path = "%s%s.mp3" % (output_path, base)
+  infile = clean_path(original_full_path)
+  outfile = clean_path(new_full_path)
 
   if extension == ".mp3":
     
     #determine if we we should re-encode this mp3 to a lower bit rate
     out = mp3info("-x", "-r v",'-p "%r"', infile)
-    convert = False
+    convert_file = False
     if out == "Variable":
       out = mp3info("-x", "-r m",'-p "%r"', infile)
       if int(out) >= 170:
-        convert = True
+        convert_file = True
     else:
       if int(out) >= 128:
-        convert = True
+        convert_file = True
         
-    if convert:
+    if convert_file:
+
+
       lame("--preset fast medium", "--mp3input", infile, outfile)
+
+      #update tags
+      original_info = mutagen.File(original_full_path, easy=True)
+      new_info = mutagen.File(new_full_path, easy=True)
+      set_info(original_info, new_info)
+
     else:
       cp(infile, outfile)
   elif extension == ".flac":
+
     lame(flac('-c', '-d', infile), "--preset fast medium",  '-', outfile)
+    #update tags
+    original_info = mutagen.File(original_full_path, easy=True)
+    new_info = mutagen.File(new_full_path, easy=True)
+    set_info(original_info, new_info)
+
   elif extension == ".ogg":
-    lame(ogg123('-d wav', '-f', '-', infile), "--preset fast medium", '-', outfile)
+    #grab ogg info
+    lame(oggdec('-r', infile), "--preset fast medium", '-r', '-', outfile)
+
+    #update tags
+    original_info = mutagen.File(original_full_path, easy=True)
+    new_info = mutagen.File(new_full_path, easy=True)
+    set_info(original_info, new_info)
+
 
 #get source and destination directories
 source = args.get(0)
@@ -71,20 +106,20 @@ for folder in folders:
     folder["audio"].sort()
     for filename in folder["audio"]: 
       #trim path if it is too long
-      length = len('%s%s%s%s' % (count, dl.fileCount, path_disp, filename)) + 5
+      length = len('%s%s%s%s' % (count, dl.audioCount, path_disp, filename)) + 5
       if length > console_width:
         if length - console_width < len(path_disp):
           path_disp = '...%s' % path_disp[(length - console_width + 3):len(path_disp)]
         else:
           path_disp = ''
       #trim file name if we're still over
-      length = len('%s%s%s%s' % (count, dl.fileCount, path_disp, filename)) + 5
+      length = len('%s%s%s%s' % (count, dl.audioCount, path_disp, filename)) + 5
       filename_disp = filename
       if length > console_width:
         if length - console_width < len(filename):
           filename_disp = '...%s' % filename[(length - console_width + 3):len(filename)]
 
-      output = output_str % (count, dl.fileCount, colored.cyan(filename_disp), colored.white(path_disp))
+      output = output_str % (count, dl.audioCount, colored.cyan(filename_disp), colored.white(path_disp))
 
       puts(output, False)
       puts(" " * (console_width - len(colored.clean(output))), False)
@@ -92,14 +127,17 @@ for folder in folders:
       sys.stdout.flush()
       try:
         convert(filename, folder['path'], folder['out_path'])
+        count += 1
       except Exception, e:
-        puts(output, False)
-        puts(" " * (console_width - len(colored.clean(output))), True)
-        puts(colored.red("Failed on file:"), filename)
-        puts(colored.red("path:"), folder['path'])
-        puts('%r' % e)
-        sys.exit(0)
-      count += 1
+        pass
+        #puts(output, False)
+        #puts(" " * (console_width - len(colored.clean(output))), True)
+        ##puts(colored.red("Failed on file:"), filename)
+        #puts(colored.red("path:"), folder['path'])
+        #puts('%r' % e)
+        #sys.exit(0)
 
 puts(output, True)
+puts("%d out of %d converted" % (count, dl.audioCount))
 puts(colored.green("Complete!"))
+
